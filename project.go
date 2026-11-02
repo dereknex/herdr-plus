@@ -35,11 +35,11 @@ const maxPanesPerTab = 4
 // for the first pane, which has nothing to split off. WorkingDir overrides the
 // directory the pane starts in, falling back to its tab's and then the project's.
 type ProjectPane struct {
-	Command    string  `toml:"command"`
-	Split      string  `toml:"split"`
-	Label      string  `toml:"label"`
-	Ratio      float64 `toml:"ratio"`
-	WorkingDir string  `toml:"working_dir"`
+	Command    string  `toml:"command,omitempty"`
+	Split      string  `toml:"split,omitempty"`
+	Label      string  `toml:"label,omitempty"`
+	Ratio      float64 `toml:"ratio,omitempty"`
+	WorkingDir string  `toml:"working_dir,omitempty"`
 }
 
 // splitRatio translates the pane's authored ratio — the share of the split it
@@ -60,13 +60,13 @@ func (p ProjectPane) splitRatio() float64 {
 // terminal.
 type ProjectTab struct {
 	Name    string        `toml:"name"`
-	Command string        `toml:"command"`
-	Panes   []ProjectPane `toml:"panes"`
+	Command string        `toml:"command,omitempty"`
+	Panes   []ProjectPane `toml:"panes,omitempty"`
 
 	// WorkingDir overrides the directory this tab's panes start in, falling back
 	// to the project's working_dir when empty. A monorepo's frontend and backend
 	// tabs can each sit in their own subdirectory this way.
-	WorkingDir string `toml:"working_dir"`
+	WorkingDir string `toml:"working_dir,omitempty"`
 }
 
 // effectivePanes returns the tab's panes in creation order, normalizing the two
@@ -104,7 +104,7 @@ func (t ProjectTab) effectivePanes() []ProjectPane {
 // herdr-workspace shell scripts with simple config files.
 type Project struct {
 	Name        string `toml:"name"`
-	Description string `toml:"description"`
+	Description string `toml:"description,omitempty"`
 
 	// Group is an optional label that clusters projects in the browser. Projects
 	// sharing a Group are shown together under a heading — for example, every
@@ -112,9 +112,9 @@ type Project struct {
 	// effect on the workspace that opens. Leaving it empty drops the project into
 	// the catch-all "Ungrouped" heading when any other project sets a Group; when
 	// no project sets one, the browser stays a plain, heading-less list.
-	Group string `toml:"group"`
+	Group string `toml:"group,omitempty"`
 
-	WorkingDir string       `toml:"working_dir"`
+	WorkingDir string       `toml:"working_dir,omitempty"`
 	Tabs       []ProjectTab `toml:"tabs"`
 
 	// source is the file the project was loaded from, used only for error

@@ -306,6 +306,28 @@ invalid project file fails the whole load with a message naming the offending
 file, so a config mistake surfaces loudly instead of a project silently going
 missing.
 
+### Auto-discovery with `sync`
+
+Instead of writing one file per repo by hand, let herdr-plus find them:
+
+```sh
+herdr-plus sync
+```
+
+It scans `[projects] scan_dirs` (default `~/workspaces`) and writes a project file
+for every immediate git-repo child that doesn't have one yet. Sync only ever
+**creates**:
+
+- A repo already covered by a project — matched by its resolved `working_dir`,
+  whatever the file is called — is skipped.
+- A file whose name is already taken by a different repo is skipped, not
+  overwritten.
+
+So hand-tuned projects survive every re-run. Generated projects use the built-in
+generic layout (an agent shell, lazygit, a terminal) and land under **Ungrouped**
+until you give them a `group`. The projects browser runs the same sync before it
+loads, so a freshly cloned repo shows up on its own.
+
 ## See also
 
 - [Configuration](../configuration/) — the full directory layout.

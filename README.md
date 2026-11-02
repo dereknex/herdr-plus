@@ -197,6 +197,28 @@ is the scriptable entry point for spinning up a known workspace in one shot — 
 for shell aliases, scripts, and AI agents. (To get `herdr-plus` on your `PATH`, see
 [Just the binary](#just-the-binary).)
 
+### Auto-discovery (`sync`)
+
+Writing a file per repo gets tedious once a machine holds dozens of them, so
+`herdr-plus sync` scans your scan directories (`[projects] scan_dirs`, default
+`~/workspaces`) and writes a project file for every immediate git-repo child that
+doesn't have one yet:
+
+```sh
+herdr-plus sync
+```
+
+Sync only ever **creates**: a repo already covered by a project — matched by its
+resolved `working_dir`, whatever the file is called — is left alone, and a file
+whose name is taken is skipped rather than overwritten. Hand-tuned projects
+(groups, split panes, startup commands) therefore survive every re-run. Generated
+projects use the built-in generic layout (an agent shell, lazygit, a terminal) and
+land under the **Ungrouped** heading until you give them a `group`.
+
+The projects browser runs the same sync before it loads, so a freshly cloned repo
+appears without any manual step. Use the explicit `herdr-plus sync` from a git
+hook, alias, or cron when you want discovery to happen on its own schedule.
+
 ### Grouping
 
 A project may set an optional `group` to cluster related projects under a heading
@@ -339,9 +361,10 @@ name = "terminal"              # no command — just an empty shell
 ### Turning a layout on and off
 
 The switch is simply **whether the file exists**. A layout in `worktrees/` is on;
-to turn one off, delete the file (or move it out of the directory). With no files
-in `worktrees/` at all, the feature is inert — every worktree fires the event, and
-herdr-plus does nothing when nothing matches.
+to turn one off, delete the file (or move it out of the directory). With no file
+matching a worktree, herdr-plus falls back to a built-in generic layout (an agent
+shell, lazygit, a terminal) — the built-in equivalent of a `repo = "*"` layout —
+so a worktree never opens bare, even with no config at all.
 
 The handler's output shows up in `herdr plugin log list --plugin
 cloudmanic.herdr-plus`, so you can confirm whether a layout fired.

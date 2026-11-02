@@ -26,7 +26,9 @@ import (
 // projects have.
 //
 // Layouts live in ~/.config/herdr-plus/worktrees/, one TOML file per layout (the
-// file name does not matter). With no files there, the feature is simply inert.
+// file name does not matter). With no files there, every worktree falls back to
+// the built-in generic layout (see genericLayoutTabs), so the feature is never a
+// no-op.
 type WorktreeLayout struct {
 	// Repo selects which worktrees this layout applies to, matched
 	// case-insensitively against the new worktree's repo name (the repository's
@@ -80,6 +82,19 @@ func (l WorktreeLayout) matches(ev worktreeEvent) bool {
 	return true
 }
 
+// genericLayoutTabs is the built-in "default workspace" — an agent shell, lazygit,
+// and a terminal. It is used in two places that must agree: the fallback layout a
+// worktree gets when nothing in worktrees/ matches, and the tabs syncProjects
+// writes into a generated project. Defining it once keeps a machine with no
+// config at all (and no wildcard layout file) from opening a bare workspace.
+func genericLayoutTabs() []ProjectTab {
+	return []ProjectTab{
+		{Name: "agent"},
+		{Name: "lazygit", Command: "lazygit"},
+		{Name: "terminal"},
+	}
+}
+
 // worktreesConfigDir returns the directory that holds worktree layout files,
 // ~/.config/herdr-plus/worktrees. Like projects, it hangs directly off the
 // herdr-plus config root rather than under a mode slug.
@@ -93,10 +108,11 @@ func worktreesConfigDir() (string, error) {
 
 // loadWorktreeLayouts reads, parses, and validates every *.toml layout in the
 // worktrees directory, returning them sorted by file name. A missing directory
-// yields no layouts and no error, so the feature is opt-in: with nothing there,
-// the worktree handler is a no-op. A malformed or invalid file fails the whole
-// load with a message naming the offending files, so config mistakes surface in
-// the plugin log instead of a layout silently going missing.
+// yields no layouts and no error: the handler then falls back to the built-in
+// generic layout, so an absent worktrees/ simply means "no overrides". A malformed
+// or invalid file fails the whole load with a message naming the offending files,
+// so config mistakes surface in the plugin log instead of a layout silently going
+// missing.
 func loadWorktreeLayouts() ([]WorktreeLayout, error) {
 	dir, err := worktreesConfigDir()
 	if err != nil {
@@ -238,10 +254,10 @@ func parseWorktreeEvent(eventJSON string, getenv func(string) string) (worktreeE
 // worktree.created (a new worktree) and worktree.opened (an existing worktree
 // reopened into a workspace); both hand us a fresh workspace that wants tabs, so
 // they share one handler. It finds the layout matching the worktree and lays its
-// tabs into the workspace herdr already created. With no matching layout it does
-// nothing — every worktree fires this, so a quiet no-op is the common, correct
-// case. Output goes to stdout/stderr, which herdr captures in the plugin log
-// (`herdr plugin log list --plugin cloudmanic.herdr-plus`).
+// tabs into the workspace herdr already created. When nothing matches — not even a
+// wildcard layout — it falls back to the built-in generic layout, so a worktree
+// never opens bare. Output goes to stdout/stderr, which herdr captures in the
+// plugin log (`herdr plugin log list --plugin cloudmanic.herdr-plus`).
 func runOnWorktreeEvent(_ []string) {
 	ev, err := parseWorktreeEvent(os.Getenv("HERDR_PLUGIN_EVENT_JSON"), os.Getenv)
 	if err != nil {
@@ -255,11 +271,12 @@ func runOnWorktreeEvent(_ []string) {
 
 	layout, ok := matchWorktreeLayout(layouts, ev)
 	if !ok {
-		// No layout for this repo/branch — the expected case for most worktrees.
-		// The feature is opt-in: a layout exists only if you put a file in
-		// worktrees/, so a quiet no-op here is the common, correct path.
-		fmt.Printf("herdr-plus: no worktree layout matches repo %q (branch %q); nothing to do.\n", ev.RepoName, ev.Branch)
-		return
+		// Nothing configured for this repo — not even a wildcard. Fall back to the
+		// built-in generic layout so a worktree still opens with a usable workspace
+		// and no config at all. This is the built-in equivalent of a `repo = "*"`
+		// layout file; write one (or a repo-specific file) to override it.
+		layout = WorktreeLayout{Repo: ev.RepoName, Tabs: genericLayoutTabs(), source: "(built-in default)"}
+		fmt.Printf("herdr-plus: no worktree layout matches repo %q (branch %q); using the built-in default layout.\n", ev.RepoName, ev.Branch)
 	}
 
 	// We need the workspace herdr made for the worktree and its root tab/pane to

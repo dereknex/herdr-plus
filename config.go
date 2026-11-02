@@ -54,6 +54,13 @@ type PluginConfig struct {
 		// `plugin pane open --placement`). Empty keeps the built-in default,
 		// zoomed.
 		Placement string `toml:"placement"`
+
+		// ScanDirs lists the directories `herdr-plus sync` (and the projects
+		// browser, which syncs before it loads) scans for git repos. Every
+		// immediate git-repo child without a project yet gets a generated project
+		// file. Empty keeps the built-in default, ~/workspaces. ~ and $VARS
+		// expand.
+		ScanDirs []string `toml:"scan_dirs"`
 	} `toml:"projects"`
 
 	QuickActions struct {

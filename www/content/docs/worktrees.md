@@ -101,9 +101,11 @@ one layout work for every worktree of the repo.
 
 ## When nothing matches
 
-Every worktree creation fires the event, but if no layout matches the repo,
-herdr-plus does nothing — the feature is opt-in and silent. With no `worktrees/`
-directory at all, it's simply inert.
+Every worktree creation fires the event. If a layout matches the repo, its tabs
+are laid in; if none does — including with no `worktrees/` directory at all —
+herdr-plus falls back to a **built-in generic layout** (an agent shell, lazygit, a
+terminal), so a worktree never opens bare. That built-in is the same generic
+layout `herdr-plus sync` writes into generated projects.
 
 ## Where it runs
 

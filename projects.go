@@ -54,14 +54,22 @@ func launchProjects() {
 // terminal), loads the projects, and — when one is chosen — spins up its
 // workspace. On cancel it simply exits and herdr tears the pane down.
 func runProjectsUI() {
-	projects, err := loadProjects()
+	cfg, err := loadPluginConfig()
 	if err != nil {
-		// Leave the pane open so the user can read the config error.
 		errExit(err)
 	}
 
-	cfg, err := loadPluginConfig()
+	// Opportunistic discovery: turn any git repo under scan_dirs into a project
+	// file so it shows up below without a manual `herdr-plus sync`. Best effort —
+	// a scan failure (an unreadable dir, a malformed existing project) must never
+	// keep the browser from opening; loadProjects surfaces the real error next.
+	if _, err := syncProjects(cfg); err != nil {
+		fmt.Fprintf(os.Stderr, "herdr-plus: project sync skipped: %v\n", err)
+	}
+
+	projects, err := loadProjects()
 	if err != nil {
+		// Leave the pane open so the user can read the config error.
 		errExit(err)
 	}
 

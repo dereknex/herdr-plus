@@ -150,10 +150,11 @@ command = ["powershell", "-NoProfile", "-NonInteractive", "-Command", "& .\\bin\
 # worktree). Both hand us a fresh workspace that wants tabs, so we subscribe to
 # both — otherwise opening an existing worktree would silently skip the layout.
 # The handler looks for a matching layout in ~/.config/herdr-plus/worktrees/ and
-# lays its tabs/panes into the workspace. It is a quiet no-op when no layout
-# matches, and it skips a workspace that already has tabs (so a layout never
-# applies twice even if both events fire). herdr runs this for you — never invoke
-# it by hand. Output is captured in the plugin log.
+# lays its tabs/panes into the workspace. When no layout matches (not even a
+# wildcard) it uses a built-in generic layout, and it skips a workspace that
+# already has tabs (so a layout never applies twice even if both events fire).
+# herdr runs this for you — never invoke it by hand. Output is captured in the
+# plugin log.
 [[events]]
 on = "worktree.created"
 platforms = ["linux", "macos"]

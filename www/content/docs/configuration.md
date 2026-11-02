@@ -43,14 +43,17 @@ upgrade**, so your projects and quick actions survive a reinstall.
 
 - **`projects/`** holds your [project templates](../projects/). Each `*.toml`
   defines one project. This directory **starts empty** — the Projects browser's
-  onboarding screen explains how to add your first one.
+  onboarding screen explains how to add your first one, or let `herdr-plus sync`
+  fill it from the git repos under `[projects] scan_dirs` (default `~/workspaces`).
+  Sync only ever creates files; it never overwrites an existing project.
 - **`quick-actions/`** holds your [quick actions](../quick-actions/). Each `*.toml`
   defines one action. This directory is **seeded with editable examples** the first
   time you open the launcher.
 - **`worktrees/`** holds your [worktree auto-layouts](../worktrees/). Each `*.toml`
   defines one layout that fires when herdr creates a matching git worktree. This
-  directory is **never created or seeded** — add it yourself to opt in. A layout
-  is on simply by existing; delete the file to turn it off.
+  directory is **never created or seeded** — add it yourself to override the
+  built-in generic layout. A layout is on simply by existing; delete the file to
+  turn it off.
 
 ## The file-per-entry model
 
@@ -68,9 +71,10 @@ sorted by their `name` in the UI.
   doesn't yet exist. Once it exists, herdr-plus leaves it alone — so deleting an
   example won't make it reappear.
 - `projects/` is never seeded. An empty directory is meaningful: it triggers the
-  Projects onboarding empty-state.
-- `worktrees/` is never created or seeded. It exists only if you add it, which is
-  how the [worktree auto-layout](../worktrees/) feature stays opt-in.
+  Projects onboarding empty-state. `herdr-plus sync` (and the browser's pre-load
+  sync) may add project files, but only ones that don't exist yet.
+- `worktrees/` is never created or seeded. It exists only if you add it. A
+  worktree with no matching file falls back to the built-in generic layout.
 
 ## Per-project (per-repo) overrides
 

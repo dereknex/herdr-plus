@@ -25,6 +25,9 @@ import (
 //   - "open <name>" opens a project's workspace headlessly, by name, skipping the
 //     interactive picker — the scriptable entry point for spinning up a known
 //     workspace in one shot.
+//   - "sync" scans the configured directories for git repos and writes a project
+//     file for each one that has none — the scriptable entry point for project
+//     auto-discovery.
 //   - "ping" is a smoke test that proves the plugin loop end to end.
 //   - "on-worktree" is herdr's worktree event handler, run for both worktree.created
 //     and worktree.opened (via the [[events]] entries in herdr-plugin.toml), not the
@@ -48,6 +51,9 @@ func main() {
 			return
 		case "open":
 			runOpen(os.Args[2:])
+			return
+		case "sync":
+			runSync()
 			return
 		case "ping":
 			runPing()
